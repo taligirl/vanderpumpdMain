@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
+    <title>Vanderpumpd</title>
+
+    <!-- [DL-PWA-4] iOS/General PWA meta -->
+<meta name="theme-color" content="#0b0a10" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+
+  </head>
+  <body style="margin:0;background:#0a0613;color:#fff">
+    <div id="root"></div>
+
+   
+   <!-- Vite entry (keep this as-is) -->
+<script type="module" src="/src/main.tsx"></script>
+
+<!-- Auto-remove any stray "snippet" tags injected by tools -->
+<script>
+  (function () {
+    const kill = () => {
+      document
+        .querySelectorAll('[data-snippet-id], [snippet-id], script[src*="snippet"]')
+        .forEach(el => el.remove());
+    };
+    kill();
+    new MutationObserver(kill).observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
+    
+</body>
+</html>
