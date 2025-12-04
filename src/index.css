@@ -145,3 +145,29 @@ button, .vp-actions, .vp-toggle { user-select: none; -webkit-tap-highlight-color
 
 .rating { display: flex; align-items: center; gap: 4px; }
 
+.browse-episode-list {
+  position: relative;
+  --browse-mask-bg: #121212;
+}
+
+.browse-episode-list::before,
+.browse-episode-list::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 48px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.browse-episode-list::before {
+  top: 0;
+  background: linear-gradient(180deg, var(--browse-mask-bg), rgba(18, 18, 18, 0));
+}
+
+.browse-episode-list::after {
+  bottom: 0;
+  background: linear-gradient(0deg, var(--browse-mask-bg), rgba(18, 18, 18, 0));
+}
+

@@ -1,42 +1,75 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 export function VirtualEpisodeList<T>({
   items,
   estimateHeight = 180,
-  overscan = 6,
   render,
 }: {
   items: T[];
   estimateHeight?: number;
-  overscan?: number;
   render: (item: T, index: number) => React.ReactNode;
 }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [scrollTop, setScrollTop] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(Math.min(4, items.length));
+  const [rowHeight, setRowHeight] = useState(estimateHeight);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    setVisibleCount(Math.min(4, items.length));
+  }, [items.length]);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    const firstItem = el?.querySelector('li');
+    if (!el || !firstItem) return;
+
+    const measure = () => {
+      const rect = firstItem.getBoundingClientRect();
+      if (rect.height > 0) {
+        setRowHeight(rect.height);
+      }
+    };
+
+    measure();
+
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(firstItem);
+
+    return () => resizeObserver.disconnect();
+  }, [visibleCount, items.length]);
 
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop((e.target as HTMLDivElement).scrollTop);
+    const el = e.currentTarget;
+    const canScroll = el.scrollHeight - el.clientHeight > 8;
+    const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
+
+    if (canScroll && nearBottom && visibleCount < items.length) {
+      setVisibleCount((prev) => Math.min(items.length, prev + 4));
+    }
   };
 
-  const total = items.length;
-  const height = estimateHeight * total;
-  const viewport = ref.current?.clientHeight || 600;
-  const startIndex = Math.max(0, Math.floor(scrollTop / estimateHeight) - overscan);
-  const endIndex = Math.min(
-    total,
-    Math.ceil((scrollTop + viewport) / estimateHeight) + overscan
-  );
+  const visible = items.slice(0, visibleCount);
+  const maxRows = 4;
+  const padding = 8;
+  const border = 1;
+  const gap = 12;
+  const chromeHeight = padding * 2 + border * 2;
 
-  const top = startIndex * estimateHeight;
-  const visible = items.slice(startIndex, endIndex);
+  const viewportHeight = useMemo(() => {
+    const rows = Math.min(items.length, maxRows);
+    const measured = rows > 0 ? rowHeight * rows + gap * Math.max(0, rows - 1) + chromeHeight : 0;
+    const capped = rowHeight * maxRows + gap * (maxRows - 1) + chromeHeight;
+
+    return rows < maxRows ? measured : capped;
+  }, [items.length, maxRows, rowHeight, gap, chromeHeight]);
 
   return (
     <div
-      ref={ref}
       onScroll={onScroll}
+      className="browse-episode-list"
       style={{
         position: 'relative',
-        height: 420,
+        maxHeight: viewportHeight,
+        height: viewportHeight,
         overflow: 'auto',
         border: '1px solid #333',
         borderRadius: 12,
@@ -45,29 +78,17 @@ export function VirtualEpisodeList<T>({
       }}
       aria-label="Episode results"
     >
-      <div style={{ position: 'relative', height }}>
-        <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            top: 0,
-            transform: `translateY(${top}px)`,
-          }}
-        >
-          <ul
-            style={{
-              listStyle: 'none',
-              padding: 0,
-              margin: 0,
-              display: 'grid',
-              gap: 12,
-            }}
-          >
-            {visible.map((item, i) => render(item, startIndex + i))}
-          </ul>
-        </div>
-      </div>
+      <ul
+        style={{
+          listStyle: 'none',
+          padding: 0,
+          margin: 0,
+          display: 'grid',
+          gap: 12,
+        }}
+      >
+        {visible.map((item, i) => render(item, i))}
+      </ul>
     </div>
   );
 }

@@ -445,7 +445,6 @@ export function BrowseTab(props: BrowseTabProps) {
                 <VirtualEpisodeList
                   items={finalList}
                   estimateHeight={190}
-                  overscan={8}
                   render={(ep: Episode) => renderEpisodeCard(ep)}
                 />
               )}
