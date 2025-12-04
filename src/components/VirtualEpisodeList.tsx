@@ -34,6 +34,7 @@ export function VirtualEpisodeList<T>({
     <div
       ref={ref}
       onScroll={onScroll}
+      className="browse-episode-list"
       style={{
         position: 'relative',
         height: 420,
